@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>T25 Playlist Queue — drag a song to play it next</title>
+<link rel="stylesheet" href="_shared/nocturne.css">
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* the component from ../, dressed in Nocturne type; no grid on the app screen (DESIGN.md R-07) */
+  #stage{background:var(--page);--font:var(--f-text)}
+  #stage .pq{position:absolute;left:40px;top:50px;zoom:1;z-index:1}
+  body.autoplay #stage :focus-visible{outline:none}
+  body.autoplay #li-cursor{transition:none}   /* visible from frame one, no fade at the loop seam */
+</style>
+</head>
+<body>
+<div id="stage" data-title="T25 Playlist Queue" data-url="veraetogrex-portfolio.github.io/playlist-queue">
+  <section class="pq" id="queue" aria-label="Music player and queue">
+    <p class="pq-brand"><b>VECTOR</b><span>Music</span></p>
+
+    <div class="pq-now">
+      <!-- the current album, and next to it the place of the next song: its record stands there -->
+      <div class="pq-stack">
+        <span class="pq-cover" role="img" aria-label="Album cover"></span>
+        <p class="pq-next-l">Playing next</p>
+        <span class="pq-place" aria-hidden="true"></span>
+        <span class="pq-rec" aria-hidden="true"><span class="pq-rec-hop"><span class="pq-rec-art"></span></span></span>
+        <span class="pq-rec" aria-hidden="true"><span class="pq-rec-hop"><span class="pq-rec-art"></span></span></span>
+      </div>
+      <div class="pq-song"><h1 class="pq-song-t"></h1><p class="pq-song-a"></p></div>
+      <div class="pq-transport">
+        <button class="pq-play" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1.2"/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2"/></svg></button>
+        <div class="pq-progress" role="progressbar" aria-label="Song progress" aria-valuemin="0" aria-valuemax="228" aria-valuenow="72" aria-valuetext="1:12 of 3:48"><span class="pq-bar"><i></i></span><span class="pq-times"><span>1:12</span><span>3:48</span></span></div>
+      </div>
+      <p class="pq-next-t"><span class="pq-cap"></span><span class="pq-cap"></span></p>
+    </div>
+
+    <div class="pq-queue">
+      <div class="pq-qhead"><h2>Up next</h2><p class="pq-count"></p></div>
+      <div class="pq-lane">
+        <span class="pq-slot" aria-hidden="true"></span>
+        <ol class="pq-list" aria-label="Queue. Drag a song by its handle, or focus the handle and use the arrow keys."></ol>
+      </div>
+    </div>
+    <p class="pq-sr" aria-live="polite"></p>
+  </section>
+</div>
+<script src="_shared/stage.js"></script>
+<script src="../script.js"></script>
+<script>
+const q = document.querySelector('#queue').queue;
+const grip = pos => { const r = Stage.rect(q.gripAt(pos)); return [r.cx, r.cy]; };
+Stage.init({
+  reset: () => q.reset(),
+  get cursorStart() { return grip(2); },              // already on the third song's handle in frame one
+  async demo(s) {
+    const t0 = performance.now();
+    const [x, y] = grip(2), top = y - 2 * q.step;
+    await s.until(t0, 220);
+    s.cursor.grab(); await s.down();                  // pick up Copper Field: it lifts
+    await s.until(t0, 420);
+    await s.move([x, top - 2], 1400, { arc: 0 });     // carry it to the top: Night Bus, then Paper Moons step aside
+    await s.until(t0, 1900);
+    await s.up(); s.cursor.grab(false);               // let go: it settles, its cover flies into the "Playing next" place
+    await s.until(t0, 4300);
+    s.cursor.grab(); await s.down();                  // and back: one drag down to where it was
+    await s.until(t0, 4420);
+    await s.move([x, y], 640, { arc: 0 });
+    await s.until(t0, 5120);
+    await s.up(); s.cursor.grab(false);               // Paper Moons flies back into the place; the cursor rests where it started
+    await s.until(t0, 5950);
+  },
+});
+</script>
+</body>
+</html>
